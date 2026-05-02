@@ -10,5 +10,21 @@ defmodule GimnasioApp.Socio do
     {:error, :edad_invalida}
   end
 
-  
+  def inscribir_clase(%__MODULE__{clases: clases} = socio, clase) do
+    if Enum.member?(clases, clase) do
+      {:error, :clase_duplicada}
+    else
+      socio_actualizado = %{socio | clases: [clase | clases]}
+      {:ok, socio_actualizado}
+    end
+  end
+
+  def desinscribir_clase(%__MODULE__{clases: clases} = socio, clase) do
+    socio_actualizado = %{socio | clases: List.delete(clases,clase)}
+    {:ok, socio_actualizado}
+  end
+
+  def listar_clases(%__MODULE__{clases: clases}) do
+    {:ok, clases}
+  end
 end

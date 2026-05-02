@@ -26,4 +26,17 @@ defmodule GimnasioApp.Gimnasio do
       socio -> {:ok, socio}
     end
   end
+
+  def eliminar_socio(socios, cedula) do
+    if Map.has_key?(socios, cedula) do
+      socios_actualizados = Map.delete(socios, cedula)
+      {:ok, socios_actualizados}
+    else
+      {:error, :no_encontrado}
+    end
+  end
+
+  def listar_socios(socios) do
+    {:ok, Map.values(socios)}
+  end
 end

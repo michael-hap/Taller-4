@@ -1,8 +1,8 @@
 defmodule GimnasioApp.Gimnasio do
   alias GimnasioApp.Socio
-
+  alias GimnasioApp.GestionArchivos
   def main do
-    %{}
+    GestionArchivos.cargar_socios()
   end
 
   def crear_socio(socios, cedula, nombre, edad) do
@@ -12,6 +12,7 @@ defmodule GimnasioApp.Gimnasio do
       case Socio.nuevo(cedula, nombre, edad) do
         {:ok, socio} ->
           socios_actualizados = Map.put(socios, cedula, socio)
+          GestionArchivos.guardar_socios(socios_actualizados)
           {:ok, socios_actualizados}
 
         {:error, razon} ->
@@ -30,6 +31,7 @@ defmodule GimnasioApp.Gimnasio do
   def eliminar_socio(socios, cedula) do
     if Map.has_key?(socios, cedula) do
       socios_actualizados = Map.delete(socios, cedula)
+      GestionArchivos.guardar_socios(socios_actualizados)
       {:ok, socios_actualizados}
     else
       {:error, :no_encontrado}
@@ -49,6 +51,7 @@ defmodule GimnasioApp.Gimnasio do
         case Socio.inscribir_clase(socio, clase) do
           {:ok, socio_actualizado} ->
             socios_actualizados = Map.put(socios, cedula, socio_actualizado)
+            GestionArchivos.guardar_socios(socios_actualizados)
             {:ok, socios_actualizados}
 
           {:error, razon} ->
@@ -66,6 +69,7 @@ defmodule GimnasioApp.Gimnasio do
         case Socio.desinscribir_clase(socio, clase) do
           {:ok, socio_actualizado} ->
             socios_actualizados = Map.put(socios, cedula, socio_actualizado)
+            GestionArchivos.guardar_socios(socios_actualizados)
             {:ok, socios_actualizados}
         end
     end

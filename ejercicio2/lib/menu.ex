@@ -1,168 +1,176 @@
 defmodule Menu do
-  def iniciar() do
-    inventario = ArchivoJSON.cargar()
+  def iniciar do
+    inventario = cargar_inventario()
     ejecutar_menu(inventario)
+  end
+
+  defp cargar_inventario do
+    case ArchivoJSON.cargar() do
+      {:ok, inventario} ->
+        inventario
+
+      {:error, razon} ->
+        IO.puts("No se pudo cargar el archivo: #{inspect(razon)}")
+        %{}
+    end
   end
 
   defp ejecutar_menu(inventario) do
     IO.puts("""
+
+    ===== MENÚ INVENTARIO =====
     1. Agregar producto
     2. Listar productos
     3. Actualizar producto
     4. Eliminar producto
-    5. Consultas
+    5. Productos con al menos dos vocales
+    6. Productos que comienzan y terminan con la misma letra
+    7. Productos por debajo de un precio
+    8. Tres productos más caros
+    9. Productos entre dos precios
+    10. Agrupar productos por rango de precio
     0. Salir
     """)
 
     opcion = IO.gets("Seleccione una opción: ") |> String.trim()
 
     case opcion do
-      "1" ->
-        nuevo_inventario = agregar_producto(inventario)
-        ejecutar_menu(nuevo_inventario)
-
-      "2" ->
-        listar_productos(inventario)
-        ejecutar_menu(inventario)
-
-      "3" ->
-        nuevo_inventario = actualizar_producto(inventario)
-        ejecutar_menu(nuevo_inventario)
-
-      "4" ->
-        nuevo_inventario = eliminar_producto(inventario)
-        ejecutar_menu(nuevo_inventario)
-
-      "5" ->
-        ejecutar_consultas(inventario)
-        ejecutar_menu(inventario)
-
-      "0" ->
-        IO.puts("Saliendo...")
-
-      _ ->
-        IO.puts("Opción inválida")
-        ejecutar_menu(inventario)
+      "1" -> inventario |> agregar_producto() |> ejecutar_menu()
+      "2" -> listar_productos(inventario); ejecutar_menu(inventario)
+      "3" -> inventario |> actualizar_producto() |> ejecutar_menu()
+      "4" -> inventario |> eliminar_producto() |> ejecutar_menu()
+      "5" -> IO.inspect(Inventario.productos_con_dos_vocales(inventario)); ejecutar_menu(inventario)
+      "6" -> IO.inspect(Inventario.productos_misma_letra(inventario)); ejecutar_menu(inventario)
+      "7" -> consultar_precio_menor(inventario); ejecutar_menu(inventario)
+      "8" -> IO.inspect(Inventario.tres_productos_mas_caros(inventario)); ejecutar_menu(inventario)
+      "9" -> consultar_entre_precios(inventario); ejecutar_menu(inventario)
+      "10" -> IO.inspect(Inventario.agrupar_productos_por_precio(inventario)); ejecutar_menu(inventario)
+      "0" -> IO.puts("Saliendo...")
+      _ -> IO.puts("Opción inválida"); ejecutar_menu(inventario)
     end
   end
 
   defp agregar_producto(inventario) do
-    codigo = IO.gets("Código: ") |> String.trim()
-    nombre = IO.gets("Nombre: ") |> String.trim()
-    precio = IO.gets("Precio: ") |> String.trim() |> String.to_integer()
-    cantidad = IO.gets("Cantidad: ") |> String.trim() |> String.to_integer()
+    codigo = pedir_texto("Código: ")
+    nombre = pedir_texto("Nombre: ")
 
-    case Producto.crear(codigo, nombre, precio, cantidad) do
-      {:ok, producto} ->
-        case Inventario.agregar(inventario, producto) do
-          {:ok, inventario_actualizado} ->
-            ArchivoJSON.guardar(inventario_actualizado)
-            IO.puts("Producto agregado")
-            inventario_actualizado
-
-          {:error, mensaje} ->
-            IO.puts(mensaje)
-            inventario
-        end
-
-      {:error, mensaje} ->
-        IO.puts(mensaje)
+    with {:ok, precio} <- pedir_numero("Precio: "),
+         {:ok, cantidad} <- pedir_entero("Cantidad: "),
+         {:ok, producto} <- Producto.crear(codigo, nombre, precio, cantidad),
+         {:ok, inventario_actualizado} <- Inventario.agregar(inventario, producto),
+         {:ok, :guardado} <- ArchivoJSON.guardar(inventario_actualizado) do
+      IO.puts("Producto agregado correctamente")
+      inventario_actualizado
+    else
+      {:error, razon} ->
+        IO.puts("Error: #{inspect(razon)}")
         inventario
     end
   end
 
-  defp listar_productos(inventario) do
-    Inventario.listar(inventario)
-    |> Enum.each(fn producto ->
-      IO.puts("#{producto.codigo} - #{producto.nombre} - #{producto.precio} - #{producto.cantidad}")
-    end)
-  end
-
   defp actualizar_producto(inventario) do
-    codigo = IO.gets("Código del producto: ") |> String.trim()
-    nuevo_precio = IO.gets("Nuevo precio: ") |> String.trim() |> String.to_integer()
+    codigo = pedir_texto("Código del producto: ")
 
-    case Inventario.actualizar(inventario, codigo, %{precio: nuevo_precio}) do
-      {:ok, inventario_actualizado} ->
-        ArchivoJSON.guardar(inventario_actualizado)
-        IO.puts("Producto actualizado")
-        inventario_actualizado
+    IO.puts("Deje vacío un campo si no desea cambiarlo.")
+    nuevo_codigo = pedir_texto("Nuevo código: ")
+    nuevo_nombre = pedir_texto("Nuevo nombre: ")
+    nuevo_precio = pedir_texto("Nuevo precio: ")
+    nueva_cantidad = pedir_texto("Nueva cantidad: ")
 
-      {:error, mensaje} ->
-        IO.puts(mensaje)
+    with {:ok, datos} <- construir_datos_actualizacion(nuevo_codigo, nuevo_nombre, nuevo_precio, nueva_cantidad),
+         {:ok, inventario_actualizado} <- Inventario.actualizar(inventario, codigo, datos),
+         {:ok, :guardado} <- ArchivoJSON.guardar(inventario_actualizado) do
+      IO.puts("Producto actualizado correctamente")
+      inventario_actualizado
+    else
+      {:error, razon} ->
+        IO.puts("Error: #{inspect(razon)}")
         inventario
     end
   end
 
   defp eliminar_producto(inventario) do
-    codigo = IO.gets("Código del producto: ") |> String.trim()
+    codigo = pedir_texto("Código del producto: ")
 
-    case Inventario.eliminar(inventario, codigo) do
-      {:ok, inventario_actualizado} ->
-        ArchivoJSON.guardar(inventario_actualizado)
-        IO.puts("Producto eliminado")
-        inventario_actualizado
-
-      {:error, mensaje} ->
-        IO.puts(mensaje)
+    with {:ok, inventario_actualizado} <- Inventario.eliminar(inventario, codigo),
+         {:ok, :guardado} <- ArchivoJSON.guardar(inventario_actualizado) do
+      IO.puts("Producto eliminado correctamente")
+      inventario_actualizado
+    else
+      {:error, razon} ->
+        IO.puts("Error: #{inspect(razon)}")
         inventario
     end
   end
 
-  defp ejecutar_consultas(inventario) do
-    IO.puts("""
-    a) Productos con dos vocales
-    b) Productos que empiezan y terminan igual
-    c) Productos con precio menor
-    d) Tres productos más caros
-    e) Productos entre precios
-    f) Agrupar por rango de precio
-    """)
+  defp listar_productos(inventario) do
+    inventario
+    |> Inventario.listar()
+    |> Enum.each(fn producto ->
+      IO.puts("#{producto.codigo} - #{producto.nombre} - #{producto.precio} - #{producto.cantidad}")
+    end)
+  end
 
-    opcion = IO.gets("Seleccione una opción: ") |> String.trim()
+  defp consultar_precio_menor(inventario) do
+    case pedir_numero("Ingrese precio límite: ") do
+      {:ok, precio} -> IO.inspect(Inventario.productos_precio_menor(inventario, precio))
+      {:error, razon} -> IO.puts("Error: #{inspect(razon)}")
+    end
+  end
 
-    case opcion do
-      "a" ->
-        IO.inspect(Inventario.productos_con_dos_vocales(inventario))
+  defp consultar_entre_precios(inventario) do
+    with {:ok, minimo} <- pedir_numero("Precio mínimo: "),
+         {:ok, maximo} <- pedir_numero("Precio máximo: ") do
+      IO.puts(Inventario.productos_entre_precios(inventario, minimo, maximo))
+    else
+      {:error, razon} -> IO.puts("Error: #{inspect(razon)}")
+    end
+  end
 
-      "b" ->
-        IO.inspect(Inventario.productos_misma_letra(inventario))
+  defp construir_datos_actualizacion(codigo, nombre, precio, cantidad) do
+    with {:ok, precio_convertido} <- convertir_numero_opcional(precio),
+         {:ok, cantidad_convertida} <- convertir_entero_opcional(cantidad) do
+      datos = %{}
+      datos = if codigo == "", do: datos, else: Map.put(datos, :codigo, codigo)
+      datos = if nombre == "", do: datos, else: Map.put(datos, :nombre, nombre)
+      datos = if precio == "", do: datos, else: Map.put(datos, :precio, precio_convertido)
+      datos = if cantidad == "", do: datos, else: Map.put(datos, :cantidad, cantidad_convertida)
 
-      "c" ->
-        precio_limite =
-          IO.gets("Ingrese precio límite: ")
-          |> String.trim()
-          |> String.to_integer()
+      {:ok, datos}
+    end
+  end
 
-        IO.inspect(Inventario.productos_precio_menor(inventario, precio_limite))
+  defp pedir_texto(mensaje), do: IO.gets(mensaje) |> String.trim()
 
-      "d" ->
-        IO.inspect(Inventario.tres_productos_mas_caros(inventario))
+  defp pedir_numero(mensaje) do
+    mensaje
+    |> pedir_texto()
+    |> convertir_numero()
+  end
 
-      "e" ->
-        precio_minimo =
-          IO.gets("Precio mínimo: ")
-          |> String.trim()
-          |> String.to_integer()
+  defp pedir_entero(mensaje) do
+    mensaje
+    |> pedir_texto()
+    |> convertir_entero()
+  end
 
-        precio_maximo =
-          IO.gets("Precio máximo: ")
-          |> String.trim()
-          |> String.to_integer()
+  defp convertir_numero_opcional(""), do: {:ok, nil}
+  defp convertir_numero_opcional(valor), do: convertir_numero(valor)
 
-        IO.puts(
-          Inventario.productos_entre_precios(
-            inventario,
-            precio_minimo,
-            precio_maximo
-          )
-        )
+  defp convertir_entero_opcional(""), do: {:ok, nil}
+  defp convertir_entero_opcional(valor), do: convertir_entero(valor)
 
-      "f" ->
-        IO.inspect(Inventario.agrupar_productos_por_precio(inventario))
+  defp convertir_numero(valor) do
+    case Float.parse(valor) do
+      {numero, ""} -> {:ok, numero}
+      _ -> {:error, :numero_invalido}
+    end
+  end
 
-      _ ->
-        IO.puts("Opción inválida")
+  defp convertir_entero(valor) do
+    case Integer.parse(valor) do
+      {numero, ""} -> {:ok, numero}
+      _ -> {:error, :entero_invalido}
     end
   end
 end

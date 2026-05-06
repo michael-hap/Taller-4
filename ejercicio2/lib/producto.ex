@@ -1,28 +1,39 @@
 defmodule Producto do
-  defstruct codigo: "", nombre: "", precio: 0, cantidad: 0
+  @derive Jason.Encoder
+  @enforce_keys [:codigo, :nombre, :precio, :cantidad]
+  defstruct [:codigo, :nombre, :precio, :cantidad]
 
   def crear(codigo, nombre, precio, cantidad) do
+    codigo = limpiar_texto(codigo)
+    nombre = limpiar_texto(nombre)
+
     cond do
       codigo == "" or String.length(codigo) > 5 ->
-        {:error, "Código inválido (máx 5 caracteres)"}
+        {:error, :codigo_invalido}
 
-      not Regex.match?(~r/^[a-zA-Z\s]+$/, nombre) ->
-        {:error, "Nombre solo letras"}
+      nombre == "" or not Regex.match?(~r/^\p{L}+(\s\p{L}+)*$/u, nombre) ->
+        {:error, :nombre_invalido}
 
       not is_number(precio) or precio < 0 ->
-        {:error, "Precio inválido"}
+        {:error, :precio_invalido}
 
       not is_integer(cantidad) or cantidad < 0 ->
-        {:error, "Cantidad inválida"}
+        {:error, :cantidad_invalida}
 
       true ->
-        {:ok,
-         %Producto{
-           codigo: codigo,
-           nombre: nombre,
-           precio: precio,
-           cantidad: cantidad
-         }}
+        {:ok, %__MODULE__{codigo: codigo, nombre: nombre, precio: precio, cantidad: cantidad}}
     end
   end
+
+  def actualizar(%__MODULE__{} = producto, nuevos_datos) when is_map(nuevos_datos) do
+    codigo = Map.get(nuevos_datos, :codigo, producto.codigo)
+    nombre = Map.get(nuevos_datos, :nombre, producto.nombre)
+    precio = Map.get(nuevos_datos, :precio, producto.precio)
+    cantidad = Map.get(nuevos_datos, :cantidad, producto.cantidad)
+
+    crear(codigo, nombre, precio, cantidad)
+  end
+
+  defp limpiar_texto(valor) when is_binary(valor), do: String.trim(valor)
+  defp limpiar_texto(_valor), do: ""
 end

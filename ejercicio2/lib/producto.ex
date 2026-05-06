@@ -33,6 +33,15 @@ defmodule Producto do
     end
   end
 
+  def actualizar(%Producto{} = producto, nuevos_datos) do
+    codigo = Map.get(nuevos_datos, :codigo, producto.codigo)
+    nombre = Map.get(nuevos_datos, :nombre, producto.nombre)
+    precio = Map.get(nuevos_datos, :precio, producto.precio)
+    cantidad = Map.get(nuevos_datos, :cantidad, producto.cantidad)
+
+    crear(codigo, nombre, precio, cantidad)
+  end
+
   defp nombre_valido?(nombre) do
     Regex.match?(~r/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/, nombre)
   end

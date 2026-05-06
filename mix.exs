@@ -22,8 +22,8 @@ defmodule GimnasioApp.MixProject do
   defp elixirc_paths(_), do: ["ejercicio1/lib", "ejercicio2/lib"]
 
   defp deps do
-    [
-      {:jason, "~> 1.4"}
-    ]
-  end
+  [
+    {:jason, "~> 1.4"}
+  ]
+end
 end

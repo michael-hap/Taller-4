@@ -2,6 +2,8 @@
 
 Proyecto desarrollado en Elixir con Mix Application para resolver los ejercicios del taller.
 
+Estudiantes: Michael Acevedo, Santiago Velasquez, Leandro Ortegon
+
 ## Ejercicio 1: Gimnasio
 
 El sistema permite crear, eliminar, buscar y listar socios. También permite inscribir y desinscribir socios en clases, listar socios inscritos en una clase específica y listar las clases de un socio por su cédula.

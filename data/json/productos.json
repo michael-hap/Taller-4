@@ -1,0 +1,92 @@
+[
+  {
+    "codigo": "A1",
+    "nombre": "Arroz",
+    "precio": 50000,
+    "cantidad": 10
+  },
+  {
+    "codigo": "B2",
+    "nombre": "Leche",
+    "precio": 30000,
+    "cantidad": 15
+  },
+  {
+    "codigo": "C3",
+    "nombre": "Panela",
+    "precio": 20000,
+    "cantidad": 8
+  },
+  {
+    "codigo": "D4",
+    "nombre": "Cafe",
+    "precio": 120000,
+    "cantidad": 5
+  },
+  {
+    "codigo": "E5",
+    "nombre": "Azucar",
+    "precio": 40000,
+    "cantidad": 12
+  },
+  {
+    "codigo": "F6",
+    "nombre": "Aceite",
+    "precio": 70000,
+    "cantidad": 7
+  },
+  {
+    "codigo": "G7",
+    "nombre": "Sal",
+    "precio": 10000,
+    "cantidad": 20
+  },
+  {
+    "codigo": "H8",
+    "nombre": "Huevos",
+    "precio": 15000,
+    "cantidad": 30
+  },
+  {
+    "codigo": "I9",
+    "nombre": "Queso",
+    "precio": 80000,
+    "cantidad": 6
+  },
+  {
+    "codigo": "J10",
+    "nombre": "Mantequilla",
+    "precio": 90000,
+    "cantidad": 4
+  },
+  {
+    "codigo": "K11",
+    "nombre": "Yogur",
+    "precio": 25000,
+    "cantidad": 18
+  },
+  {
+    "codigo": "L12",
+    "nombre": "Avena",
+    "precio": 35000,
+    "cantidad": 9
+  },
+  {
+    "codigo": "M13",
+    "nombre": "Harina",
+    "precio": 45000,
+    "cantidad": 11
+  },
+  {
+    "codigo": "N14",
+    "nombre": "Chocolate",
+    "precio": 60000,
+    "cantidad": 13
+  },
+  {
+    "codigo": "O15",
+    "nombre": "Galletas",
+    "precio": 30000,
+    "cantidad": 14
+  }
+]

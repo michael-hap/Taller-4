@@ -6,7 +6,7 @@ defmodule Producto do
       codigo == "" or String.length(codigo) > 5 ->
         {:error, "Código inválido (máx 5 caracteres)"}
 
-      not Regex.match?(~r/^[a-zA-Z\s]+$/, nombre) ->
+      not Regex.match?(~r/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, nombre) ->
         {:error, "Nombre solo letras"}
 
       not is_number(precio) or precio < 0 ->
